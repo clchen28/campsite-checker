@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 # - Outputs the data to backend endpoint
 
 # FIXME: Returns day use parking
+# TODO: Maybe add functinality to detect difference between available and walk-up
 
 # Types of dates encountered:
 # Sun Oct 01 2017 - For use when POSTing to website for initial date
@@ -55,7 +56,9 @@ class Campground(object):
         campsites_string += ']'
         return campsites_string
     def jsonify(self):
-        # Returns JSON representation of this object
+        """
+        Returns JSON representation of this object, as a dict
+        """
         json_string = '{"name": "' + self.name + '", '
         json_string += '"url": "' + self.url + '", '
         json_string += '"campsites": ' + self.__stringify_campsites()
@@ -65,7 +68,7 @@ class Campground(object):
 class CampgroundList(list):
     """
     Inherits from list, contains several Campground objects.
-    Has a method to return a JSON representation of its Campgrounds.
+    Has a method to return a JSON string representation of its Campgrounds.
     """
     def serialize(self):
         if len(self) == 0:
@@ -74,7 +77,7 @@ class CampgroundList(list):
         result = {"campgrounds": [None] * len(self)}
         for idx,campground in enumerate(self):
             result["campgrounds"][idx] = campground.jsonify()
-        return result
+        return json.dumps(result)
 
 def get_availability_from_row(row, campground, first_date, last_date):
     """
@@ -89,8 +92,10 @@ def get_availability_from_row(row, campground, first_date, last_date):
     campsite = row.find("div", class_="siteListLabel").get_text()
     days = row.find_all("td", class_="status")
     for idx, day in enumerate(days):
+        date = first_date + timedelta(days=idx)
+        if date > last_date:
+            return
         if "a" in day.attrs["class"]:
-            date = first_date + timedelta(days=idx)
             campground.add_date(campsite, date)
 
 def get_availability(campground, url, start_date, end_date):
@@ -250,5 +255,4 @@ if (__name__ == "__main__"):
     print myCampground.jsonify()
     """
     a = get_campgrounds_from_API(37.827822, -119.544858, 10)
-    print a.serialize()
     print get_all_campsite_availability(a, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
