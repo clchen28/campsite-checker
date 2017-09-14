@@ -1,17 +1,27 @@
 from flask import Flask
+from flask_restful import Resource, Api, reqparse
+from datetime import datetime
 from cg_scrape import *
 
 app = Flask(__name__)
+api = Api(app)
 
-# TODO: Consider using Flask-RESTful
+class Campgrounds(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('lat', type=float, required=True, location='json')
+        parser.add_argument('lon', type=float, required=True, location='json')
+        parser.add_argument('radius', type=int, required=True, location='json')
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+        # These need to be converted to datetime.date objects
+        parser.add_argument('start_date', type=str, required=True, location='json')
+        parser.add_argument('end_date', type=str, required=True, location='json')
 
-@app.route('/api')
-def get_json():
-    url = "https://www.recreation.gov/camping/Hodgdon_Meadow/r/campsiteCalendar.do?page=calendar&search=site&contractCode=NRSO&parkId=70929"
-    myCampground = Campground("Hodgdon Meadow", url)
-    myCampground = get_availability(myCampground, url, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
-    return myCampground.jsonify()
+        args = parser.parse_args(strict=True)
+
+        campgrounds = get_campgrounds_from_API(args['lat'], args['lon'], args['radius'])
+        start_date = datetime.strptime(args['start_date'], "%m/%d/%Y").date()
+        end_date = datetime.strptime(args['end_date'], "%m/%d/%Y").date()
+        return get_all_campsite_availability(campgrounds, start_date, end_date)
+
+api.add_resource(Campgrounds, '/api')

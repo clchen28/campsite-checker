@@ -77,7 +77,7 @@ class CampgroundList(list):
         result = {"campgrounds": [None] * len(self)}
         for idx,campground in enumerate(self):
             result["campgrounds"][idx] = campground.jsonify()
-        return json.dumps(result)
+        return result
 
 def get_availability_from_row(row, campground, first_date, last_date):
     """
