@@ -1,24 +1,26 @@
-import requests
 import mechanize
+import json
+import requests
 import re
+import dotenv
 from datetime import datetime
 from datetime import timedelta
 from bs4 import BeautifulSoup
 
 # Function that acts as a wrapper:
-# - Calls the API
-# - Gets all the URLs
+# - Calls the API - DONE
+# - Gets all the URLs - DONE
 # - Calls the function that pulls the data from a page given an URL
 # - Outputs the data to backend endpoint
 
-# TODO: Test the get_availability function by calling it from higher level code
+# FIXME: Returns day use parking
 
 # Types of dates encountered:
 # Sun Oct 01 2017 - For use when POSTing to website for initial date
 # Oct 1 2017 - likely format for when scraping data
 # datetime.date object - stored in actual campsites attribute
 
-class Campground:
+class Campground(object):
     def __init__(self, name, url):
         self.name = name
         self.campsites = {}
@@ -58,7 +60,21 @@ class Campground:
         json_string += '"url": "' + self.url + '", '
         json_string += '"campsites": ' + self.__stringify_campsites()
         json_string += '}'
-        return json_string
+        return json.loads(json_string)
+
+class CampgroundList(list):
+    """
+    Inherits from list, contains several Campground objects.
+    Has a method to return a JSON representation of its Campgrounds.
+    """
+    def serialize(self):
+        if len(self) == 0:
+            return {"campgrounds": []}
+
+        result = {"campgrounds": [None] * len(self)}
+        for idx,campground in enumerate(self):
+            result["campgrounds"][idx] = campground.jsonify()
+        return result
 
 def get_availability_from_row(row, campground, first_date, last_date):
     """
@@ -77,8 +93,6 @@ def get_availability_from_row(row, campground, first_date, last_date):
             date = first_date + timedelta(days=idx)
             campground.add_date(campsite, date)
 
-# url = "https://www.recreation.gov/camping/Hodgdon_Meadow/r/campsiteCalendar.do?page=calendar&search=site&contractCode=NRSO&parkId=70929"
-
 def get_availability(campground, url, start_date, end_date):
     """
     Gets availability for all campsites for a given campground. Takes in a
@@ -96,9 +110,6 @@ def get_availability(campground, url, start_date, end_date):
     br.set_handle_robots(False)
     br.open(url)
 
-    # TODO: Add a check to see if it's necessary to do the form submission
-    # If the start date is already available in the calendar, then no need
-
     # First, submit form with given arrival date
     br.select_form("unifSearchForm")
     # Assume that start_date and end_date are datetime.date objects
@@ -107,7 +118,11 @@ def get_availability(campground, url, start_date, end_date):
     br.submit()
 
     # Navigate to calendar. Now, first date in calendar will be start_date
-    br.open(url)
+    # FIXME: This is not the URL to the calendar - need to follow the calendar link
+    text = br.response().read()
+    soup = BeautifulSoup(text, "html.parser")
+    calendar_url = soup.find("a", id="campCalendar")["href"]
+    br.open("https://www.recreation.gov" + calendar_url)
 
     last_date_reached = False
     last_campsite_reached = False
@@ -174,7 +189,66 @@ def get_availability(campground, url, start_date, end_date):
             br.open(next_week_link)
     return campground
 
-url = "https://www.recreation.gov/camping/Hodgdon_Meadow/r/campsiteCalendar.do?page=calendar&search=site&contractCode=NRSO&parkId=70929"
-myCampground = Campground("Hodgdon Meadow", url)
-myCampground = get_availability(myCampground, url, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
-print myCampground.jsonify()
+class CantAccessAPI(Exception):
+    """Raise if request to Recreation.gov API fails for any reason"""
+    pass
+
+def get_campgrounds_from_API(latitude, longitude, radius):
+    """
+    Calls Recreation.gov API with a location and search radius, and returns URLs and campground names
+    Returns a list of dicts, with two key-value pairs: campground name and URL
+    Returns an empty list if no campgrounds found
+
+    :param latitude: Latitude of coordinate to center the search around
+    :param longitude: Longitude of coordinate to center the search around
+    :param radius: Radius to search around
+    """
+    dotenv.load()
+    API_KEY = dotenv.get('API_KEY')
+
+    api_url = "https://ridb.recreation.gov/api/v1/facilities.json?apikey="
+    api_url += API_KEY
+    api_url += "&activity=9"
+    api_url += "&latitude=" + str(latitude)
+    api_url += "&longitude=" + str(longitude)
+    api_url += "&radius=" + str(radius)
+    
+    # Gets campgrounds from RIDB API
+    res = requests.get(api_url)
+    if not res.ok:
+        raise CantAccessAPI("Unable to access RIDB API. Check your connection and API key")
+
+    res_list = res.json()["RECDATA"]
+
+    # Constructs list of Campgrounds
+    results = CampgroundList([None] * len(res_list))
+    base_url = "https://www.recreation.gov/camping/"
+    base_url_suffix = "/r/campgroundDetails.do?contractCode=NRSO&parkId="
+
+    for idx,campsite in enumerate(res_list):
+        facility_name = campsite['FacilityName'].lower().replace(" ", "-")
+        facilityID = str(int(campsite['LegacyFacilityID']))
+
+        campground_url = base_url + facility_name + base_url_suffix + facilityID
+        name = " ".join(
+            w.capitalize() for w in res_list[idx]['FacilityName'].split())
+        
+        results[idx] = Campground(name, campground_url)
+    return results
+
+def get_all_campsite_availability(campgrounds, start_date, end_date):
+    for campground in campgrounds:
+        get_availability(campground, campground.url, start_date, end_date)
+    return campgrounds.serialize()
+
+# Main function for simple testing
+if (__name__ == "__main__"):
+    """
+    url = "https://www.recreation.gov/camping/Hodgdon_Meadow/r/campsiteCalendar.do?page=calendar&search=site&contractCode=NRSO&parkId=70929"
+    myCampground = Campground("Hodgdon Meadow", url)
+    myCampground = get_availability(myCampground, url, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
+    print myCampground.jsonify()
+    """
+    a = get_campgrounds_from_API(37.827822, -119.544858, 10)
+    print a.serialize()
+    print get_all_campsite_availability(a, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())

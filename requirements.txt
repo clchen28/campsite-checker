@@ -1,0 +1,4 @@
+beautifulsoup4==4.6.0
+Flask==0.12.2
+mechanize==0.3.5
+python-env==1.0.0
