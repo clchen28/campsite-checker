@@ -123,7 +123,6 @@ def get_availability(campground, url, start_date, end_date):
     br.submit()
 
     # Navigate to calendar. Now, first date in calendar will be start_date
-    # FIXME: This is not the URL to the calendar - need to follow the calendar link
     text = br.response().read()
     soup = BeautifulSoup(text, "html.parser")
     calendar_url = soup.find("a", id="campCalendar")["href"]
@@ -138,6 +137,16 @@ def get_availability(campground, url, start_date, end_date):
             text = br.response().read()
             soup = BeautifulSoup(text, "html.parser")
             calendar = soup.find("table", id="calendar")
+
+            # If calendar is not found, could be due to reservations not available before a
+            # certain date. In this situation, just return campground with no availability
+            # TODO: For Trumbull Lake, online reservations are not available before
+            # a certain date. Try adding a check for this, and seeing if the date output by
+            # the error is within the start and end date. If so, re-submit form to check for
+            # availability, as opposed to just returning
+            if not calendar:
+                return campground
+
             calendar_header = calendar.find("thead")
             cur_month_year = calendar_header.find("td", class_="weeknav month").get_text()
 
@@ -198,6 +207,10 @@ class CantAccessAPI(Exception):
     """Raise if request to Recreation.gov API fails for any reason"""
     pass
 
+class CantFindLocation(Exception):
+    """Raise if request to Google Maps API finds location to be invalid"""
+    pass
+
 def get_campgrounds_from_API(latitude, longitude, radius):
     """
     Calls Recreation.gov API with a location and search radius, and returns URLs and campground names
@@ -209,7 +222,7 @@ def get_campgrounds_from_API(latitude, longitude, radius):
     :param radius: Radius to search around
     """
     dotenv.load()
-    API_KEY = dotenv.get('API_KEY')
+    API_KEY = dotenv.get('REC_API_KEY')
 
     api_url = "https://ridb.recreation.gov/api/v1/facilities.json?apikey="
     api_url += API_KEY
@@ -226,25 +239,51 @@ def get_campgrounds_from_API(latitude, longitude, radius):
     res_list = res.json()["RECDATA"]
 
     # Constructs list of Campgrounds
-    results = CampgroundList([None] * len(res_list))
+    results = CampgroundList()
     base_url = "https://www.recreation.gov/camping/"
     base_url_suffix = "/r/campgroundDetails.do?contractCode=NRSO&parkId="
 
+    print res.json()
+
     for idx,campsite in enumerate(res_list):
         facility_name = campsite['FacilityName'].lower().replace(" ", "-")
-        facilityID = str(int(campsite['LegacyFacilityID']))
-
-        campground_url = base_url + facility_name + base_url_suffix + facilityID
-        name = " ".join(
-            w.capitalize() for w in res_list[idx]['FacilityName'].split())
-        
-        results[idx] = Campground(name, campground_url)
+        if campsite['LegacyFacilityID']:
+            facilityID = str(int(campsite['LegacyFacilityID']))
+            campground_url = base_url + facility_name + base_url_suffix + facilityID
+            name = " ".join(
+                w.capitalize() for w in res_list[idx]['FacilityName'].split())
+            results.append(Campground(name, campground_url))
     return results
 
 def get_all_campsite_availability(campgrounds, start_date, end_date):
     for campground in campgrounds:
         get_availability(campground, campground.url, start_date, end_date)
     return campgrounds.serialize()
+
+def geocode_location(location):
+    """
+    Returns lat and lon based on an input string representing location
+    
+    :param location: String representing location to geocode
+    :returns: Tuple (lat,lon) of geocoded location
+    """
+    api_base_url = "https://maps.googleapis.com/maps/api/geocode/json?"
+    dotenv.load()
+    API_KEY = dotenv.get('GOOG_API_KEY')
+    api_base_url += "address=" + str(location)
+    api_base_url += "&key=" + API_KEY
+
+    res = requests.get(api_base_url)
+    if not res.ok:
+        raise CantAccessAPI("Unable to access Google Maps API. Check your connection and API key")
+
+    res_obj = res.json()
+    if res_obj["status"] != "OK":
+        raise CandFindLocation("Location is invalid")
+    else:
+        lat = res_obj["results"][0]["geometry"]["location"]["lat"]
+        lon = res_obj["results"][0]["geometry"]["location"]["lng"]
+        return (lat, lon)
 
 # Main function for simple testing
 if (__name__ == "__main__"):
