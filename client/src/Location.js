@@ -1,4 +1,5 @@
 import React, { Component }  from 'react';
+import { FormControl, ControlLabel } from 'react-bootstrap';
 
 class Location extends Component {
   curError() {
@@ -10,10 +11,8 @@ class Location extends Component {
   render() {
     return (
       <div>
-        <em>Location</em> <i className="fa fa-map-marker" aria-hidden="true"></i>
-        <br />
-        <i className="fa fa-crosshairs" aria-hidden="true"></i>
-        <input type="text" name="location" value={this.props.location} onChange={this.props.onChange}></input>
+        <ControlLabel>Location</ControlLabel>
+        <FormControl type="text" value={this.props.location} onChange={this.props.onChange} />
         <p>{this.curError()}</p>
       </div>
     );

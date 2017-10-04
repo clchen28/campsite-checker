@@ -1,4 +1,5 @@
 import React, { Component }  from 'react';
+import { FormControl, ControlLabel } from 'react-bootstrap';
 
 class Radius extends Component {
   curError() {
@@ -16,10 +17,9 @@ class Radius extends Component {
   render() {
       return (
       <div>
-          <em>Radius (miles)</em>
-          <br />
-          <input type="text" name="radius" value={this.props.radius} onChange={this.props.onChange}></input>
-          <p>{this.curError()}</p>
+        <ControlLabel>Radius (miles)</ControlLabel>
+        <FormControl type="text" value={this.props.radius} onChange={this.props.onChange} />
+        <p>{this.curError()}</p>
       </div>
       );
   }

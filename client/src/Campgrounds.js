@@ -30,7 +30,7 @@ class Campgrounds extends Component {
       <div>
         {this.processCampgrounds(this.props.campgrounds)};
       </div>
-    );
+    )
   }
 }
 

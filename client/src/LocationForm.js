@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import DateBox from './DateBox';
 import Location from './Location';
 import Radius from './Radius';
+import { FormGroup, Button } from 'react-bootstrap';
 import moment from 'moment';
 import axios from 'axios';
 
@@ -113,13 +114,19 @@ class LocationForm extends Component {
   render() {
     return (
       <form onSubmit={this.handleSubmit}>
-        <Location location={this.state.location} onChange={this.onChangeLocation} locationError={this.state.locationError} />
-        <Radius radius={this.state.radius} onChange={this.onChangeRadius} radiusError={this.state.radiusError} />
-        <DateBox startOrEnd="Check-in" date={this.state.start_date} onChange={this.onChangeStartDate}
-          dateError={this.state.startDateError} />
-        <DateBox startOrEnd="Check-out" date={this.state.end_date} onChange={this.onChangeEndDate} 
-          dateError={this.state.endDateError} />
-        <input type="submit" value="Submit" />
+        <FormGroup>
+          <Location location={this.state.location} onChange={this.onChangeLocation} locationError={this.state.locationError} />
+        </FormGroup>
+        <FormGroup>
+          <Radius radius={this.state.radius} onChange={this.onChangeRadius} radiusError={this.state.radiusError} />
+        </FormGroup>
+        <FormGroup>
+          <DateBox startOrEnd="Check-in" date={this.state.start_date} onChange={this.onChangeStartDate}
+            dateError={this.state.startDateError} />
+          <DateBox startOrEnd="Check-out" date={this.state.end_date} onChange={this.onChangeEndDate} 
+            dateError={this.state.endDateError} />
+        </FormGroup>
+          <Button type="submit" bsStyle="primary">Submit</Button>
       </form>
     );
   }
