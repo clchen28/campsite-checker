@@ -13,7 +13,7 @@ class Campground extends Component {
         Campsite Dates: {this.props.campsiteDates}
         <br />
       </div>
-    );
+    )
   }
 }
 
