@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import LocationForm from './LocationForm';
 import Campgrounds from './Campgrounds';
-import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
@@ -33,8 +32,7 @@ class App extends Component {
     return (
       <div className="App">
         <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Campsite Checker</h2>
+          <h1 id="site-title">Campsite Checker</h1>
         </div>
         {this.currentView()}
       </div>
