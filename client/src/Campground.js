@@ -10,7 +10,7 @@ class Campground extends Component {
         <br />
         Campsite Number: {this.props.campsiteNumber}
         <br />
-        Campsite Dates; {this.props.campsiteDates}
+        Campsite Dates: {this.props.campsiteDates}
         <br />
       </div>
     );

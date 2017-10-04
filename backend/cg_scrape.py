@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 # - Outputs the data to backend endpoint
 
 # FIXME: Returns day use parking
-# TODO: Maybe add functinality to detect difference between available and walk-up
+# TODO: Maybe add functionality to detect difference between available and walk-up
 
 # Types of dates encountered:
 # Sun Oct 01 2017 - For use when POSTing to website for initial date
@@ -36,7 +36,7 @@ class Campground(object):
         # Returns a string representation of the campsite names and availability
         # Helper function for jsonify
         if len(self.campsites) == 0:
-            return "[{}]"
+            return "[]"
         campsites_string = "["
         campsite_numbers = sorted(self.campsites.keys())
         last_campsite_number = campsite_numbers[-1]

@@ -35,6 +35,9 @@ class Campgrounds(Resource):
         campgrounds = get_campgrounds_from_API(lat, lon, args['radius'])
         start_date = datetime.strptime(args['start_date'], "%m/%d/%Y").date()
         end_date = datetime.strptime(args['end_date'], "%m/%d/%Y").date()
-        return get_all_campsite_availability(campgrounds, start_date, end_date)
+
+        result = get_all_campsite_availability(campgrounds, start_date, end_date)
+        print result
+        return result
 
 api.add_resource(Campgrounds, '/api')
