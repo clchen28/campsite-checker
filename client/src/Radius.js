@@ -1,5 +1,5 @@
 import React, { Component }  from 'react';
-import { FormControl, ControlLabel } from 'react-bootstrap';
+import { FormControl, ControlLabel, FormGroup, HelpBlock } from 'react-bootstrap';
 
 class Radius extends Component {
   curError() {
@@ -17,9 +17,12 @@ class Radius extends Component {
   render() {
       return (
       <div>
-        <ControlLabel>Radius (miles)</ControlLabel>
-        <FormControl type="text" value={this.props.radius} onChange={this.props.onChange} />
-        <p>{this.curError()}</p>
+        <FormGroup validationState={this.props.validateRadius()} ref="radiusFormGroup">
+          <ControlLabel>Radius (miles)</ControlLabel>
+          <FormControl type="text" value={this.props.radius} onChange={this.props.onChange} />
+          <FormControl.Feedback />
+          {this.props.validateRadius() === "error" ? <HelpBlock>Must be a valid number</HelpBlock> : ""}
+        </FormGroup>
       </div>
       );
   }

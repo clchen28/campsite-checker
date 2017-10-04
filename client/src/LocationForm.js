@@ -1,23 +1,23 @@
 import React, { Component } from 'react';
-import DateBox from './DateBox';
+import Dates from './Dates';
 import Location from './Location';
 import Radius from './Radius';
-import { FormGroup, Button } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import moment from 'moment';
 import axios from 'axios';
-
-// TODO: Use a more elegant technique to handle form error validation
 
 class LocationForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      locationFirstRender: true,
+      radiusFirstRender: true,
       location: "",
       radius: "",
-      radiusError: "",
-      locationError: "",
-      startDateError: "",
-      endDateError: "",
+      locationValidationState: null,
+      radiusValidationState: null,
+      startDateError: null,
+      endDateError: null,
       start_date: moment(),
       end_date: moment().add(1, 'days'),
     };
@@ -26,72 +26,96 @@ class LocationForm extends Component {
     this.onChangeRadius = this.onChangeRadius.bind(this);
     this.onChangeStartDate = this.onChangeStartDate.bind(this);
     this.onChangeEndDate = this.onChangeEndDate.bind(this);
+    this.validateLocation = this.validateLocation.bind(this);
+    this.validateRadius = this.validateRadius.bind(this);
+    this.validateDates = this.validateDates.bind(this);
   }
 
   onChangeLocation(newLocation) {
     this.setState({
-      location: newLocation.target.value
+      location: newLocation.target.value,
+      locationFirstRender: false
     });
   }
 
   onChangeRadius(newRadius) {
     this.setState({
-      radius: newRadius.target.value
+      radius: newRadius.target.value,
+      radiusFirstRender: false
     });
   }
 
   onChangeStartDate(newStartDate) {
     this.setState({
-      start_date: newStartDate
+      start_date: newStartDate,
+      dateFirstRender: false
     });
   }
 
   onChangeEndDate(newEndDate) {
     this.setState({
-      end_date: newEndDate
+      end_date: newEndDate,
+      dateFirstRender: false
     });
   }
 
-  noErrorInForm() {
-    if (this.state.radiusError === "" && this.state.locationError === "" &&
-      this.state.startDateError === "" && this.state.endDateError === "") {
-      return true
+  validateLocation() {
+    if (this.state.locationFirstRender) {
+      return null;
+    }
+    else if (this.state.location === "") {
+      return "error";
     }
     else {
-      return false
+      return "success";
+    }
+  }
+
+  validateRadius() {
+    if (this.state.radiusFirstRender) {
+      return null;
+    }
+    else if (this.state.radius === "") {
+      return "error";
+    }
+    else if (isNaN(this.state.radius)) {
+      return "error";
+    }
+    else if (isNaN(parseInt(this.state.radius, 10))) {
+      return "error";
+    }
+    else {
+      return "success";
+    }
+  }
+
+  validateDates() {
+    if (this.state.start_date.date() < moment().date()) {
+      return "Start date must be today or later";
+    }
+    else if (this.state.start_date >= this.state.end_date) {
+      return "Start date must be before the end date";
+    }
+    return "success";
+  }
+
+  noErrorInForm() {
+    if (this.validateLocation() !== "success") {
+      return false;
+    }
+    else if (this.validateRadius() !== "success") {
+      return false;
+    }
+    else if (this.validateDates() !== "success") {
+      return false;
+    }
+    else {
+      return true;
     }
   }
 
   handleSubmit(event) {
     event.preventDefault();
-    if (this.state.radius === "") {
-      this.setState({
-        radiusError: "null_radius"
-      });
-    }
-    else if (isNaN(this.state.radius)) {
-      this.setState({
-        radiusError: "invalid_radius"
-      });
-    }
-    if (this.state.location === "") {
-      this.setState({
-        locationError: "null_location"
-      });
-    }
-
-    if (this.state.start_date.date() < moment().date()) {
-      this.setState({
-        startDateError: "past_date"
-      });
-    }
-
-    if (this.state.start_date >= this.state.end_date) {
-      this.setState({
-        endDateError: "invalid_date"
-      });
-    }
-
     if (this.noErrorInForm()) {
       var apiUrl = "/api";
       var data = {
@@ -112,21 +136,27 @@ class LocationForm extends Component {
   }
 
   render() {
+    const disabledButton = <Button type="submit" bsStyle="danger" disabled>Submit</Button>;
+    const activeButton = <Button type="submit" bsStyle="success">Submit</Button>;
     return (
       <form onSubmit={this.handleSubmit}>
-        <FormGroup>
-          <Location location={this.state.location} onChange={this.onChangeLocation} locationError={this.state.locationError} />
-        </FormGroup>
-        <FormGroup>
-          <Radius radius={this.state.radius} onChange={this.onChangeRadius} radiusError={this.state.radiusError} />
-        </FormGroup>
-        <FormGroup>
-          <DateBox startOrEnd="Check-in" date={this.state.start_date} onChange={this.onChangeStartDate}
-            dateError={this.state.startDateError} />
-          <DateBox startOrEnd="Check-out" date={this.state.end_date} onChange={this.onChangeEndDate} 
-            dateError={this.state.endDateError} />
-        </FormGroup>
-          <Button type="submit" bsStyle="primary">Submit</Button>
+        <Location 
+          location={this.state.location}
+          validateLocation={this.validateLocation}
+          onChange={this.onChangeLocation}
+          locationError={this.state.locationError} />
+        <Radius
+          radius={this.state.radius}
+          validateRadius={this.validateRadius}
+          onChange={this.onChangeRadius}
+          radiusError={this.state.radiusError} />
+        <Dates
+          startDate={this.state.start_date}
+          endDate={this.state.end_date}
+          validateDates={this.validateDates}
+          onChangeStartDate={this.onChangeStartDate}
+          onChangeEndDate={this.onChangeEndDate} />
+        {this.noErrorInForm() ? activeButton : disabledButton}
       </form>
     );
   }

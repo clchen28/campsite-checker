@@ -1,5 +1,5 @@
 import React, { Component }  from 'react';
-import { FormControl, ControlLabel } from 'react-bootstrap';
+import { FormControl, ControlLabel, FormGroup, HelpBlock } from 'react-bootstrap';
 
 class Location extends Component {
   curError() {
@@ -11,9 +11,12 @@ class Location extends Component {
   render() {
     return (
       <div>
-        <ControlLabel>Location</ControlLabel>
-        <FormControl type="text" value={this.props.location} onChange={this.props.onChange} />
-        <p>{this.curError()}</p>
+        <FormGroup validationState={this.props.validateLocation()}>
+          <ControlLabel>Location</ControlLabel>
+          <FormControl type="text" value={this.props.location} onChange={this.props.onChange} />
+          <FormControl.Feedback />
+          {this.props.validateLocation() === "error" ? <HelpBlock>Location required</HelpBlock> : ""}
+        </FormGroup>
       </div>
     );
   }
