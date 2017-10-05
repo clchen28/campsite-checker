@@ -13,7 +13,7 @@ class Location extends Component {
       <div>
         <FormGroup validationState={this.props.validateLocation()}>
           <ControlLabel>Location</ControlLabel>
-          <FormControl type="text" value={this.props.location} onChange={this.props.onChange} />
+          <FormControl className="input75" type="text" value={this.props.location} onChange={this.props.onChange} />
           <FormControl.Feedback />
           {this.props.validateLocation() === "error" ? <HelpBlock>Location required</HelpBlock> : ""}
         </FormGroup>

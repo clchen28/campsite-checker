@@ -16,6 +16,15 @@
   color: white;
 }
 
+.App-footer {
+  padding-top: 50px;
+}
+
+.input75 {
+  width: 75%;
+  margin: 0 auto;
+}
+
 .App-intro {
   font-size: large;
 }

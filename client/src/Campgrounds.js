@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Campground from './Campground';
+import { Table } from 'react-bootstrap';
 
 class Campgrounds extends Component {
   processCampgrounds(campgrounds) {
@@ -17,8 +18,8 @@ class Campgrounds extends Component {
         if (campsiteDates.length === 0) {
           break;
         }
-        let component = (<div key={counter}><Campground name={name} url={url}
-          campsiteNumber={campsiteNumber} campsiteDates={campsiteDates} /><br /></div>);
+        let component = (<Campground key={counter} name={name} url={url}
+          campsiteNumber={campsiteNumber} campsiteDates={campsiteDates} />);
         results.push(component);
       }
     }
@@ -28,7 +29,17 @@ class Campgrounds extends Component {
   render() {
     return (
       <div>
-        {this.processCampgrounds(this.props.campgrounds)};
+        <Table responsive>
+          <thead>
+            <tr>
+              <th align="center">Campsite</th>
+              <th align="center">Dates Available</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.processCampgrounds(this.props.campgrounds)}
+          </tbody>
+        </Table>
       </div>
     )
   }

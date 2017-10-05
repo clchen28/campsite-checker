@@ -19,7 +19,7 @@ class Radius extends Component {
       <div>
         <FormGroup validationState={this.props.validateRadius()} ref="radiusFormGroup">
           <ControlLabel>Radius (miles)</ControlLabel>
-          <FormControl type="text" value={this.props.radius} onChange={this.props.onChange} />
+          <FormControl className="input75" type="text" value={this.props.radius} onChange={this.props.onChange} />
           <FormControl.Feedback />
           {this.props.validateRadius() === "error" ? <HelpBlock>Must be a valid number</HelpBlock> : ""}
         </FormGroup>
