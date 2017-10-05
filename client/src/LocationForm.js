@@ -18,6 +18,7 @@ class LocationForm extends Component {
       radiusValidationState: null,
       startDateError: null,
       endDateError: null,
+      submitting: false,
       start_date: moment(),
       end_date: moment().add(1, 'days'),
     };
@@ -126,7 +127,10 @@ class LocationForm extends Component {
       };
       var headers = {
         'Content-Type': 'application/json'
-      }
+      };
+      this.setState({
+        submitting: true
+      });
       axios.post(apiUrl, data, headers).then(
         response => {
           this.props.onResponse(response.data.campgrounds);
@@ -135,9 +139,22 @@ class LocationForm extends Component {
     }
   }
 
-  render() {
-    const disabledButton = <Button type="submit" bsStyle="danger" disabled>Submit</Button>;
+  currentButton() {
+    const loadingButton = <Button type="submit" bsStyle="warning" disabled>Searching...</Button>;
     const activeButton = <Button type="submit" bsStyle="success">Submit</Button>;
+    const disabledButton = <Button type="submit" bsStyle="danger" disabled>Submit</Button>;
+    if (this.state.submitting) {
+      return loadingButton;
+    }
+    else if (this.noErrorInForm()) {
+      return activeButton;
+    }
+    else if (!this.noErrorInForm()) {
+      return disabledButton;
+    }
+  }
+
+  render() {
     return (
       <form onSubmit={this.handleSubmit}>
         <Location 
@@ -156,7 +173,7 @@ class LocationForm extends Component {
           validateDates={this.validateDates}
           onChangeStartDate={this.onChangeStartDate}
           onChangeEndDate={this.onChangeEndDate} />
-        {this.noErrorInForm() ? activeButton : disabledButton}
+        {this.currentButton()}
       </form>
     );
   }
