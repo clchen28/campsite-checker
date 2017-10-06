@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 # - Calls the function that pulls the data from a page given an URL
 # - Outputs the data to backend endpoint
 
-# FIXME: Returns day use parking
 # TODO: Maybe add functionality to detect difference between available and walk-up
 
 # Types of dates encountered:
@@ -79,7 +78,7 @@ class CampgroundList(list):
             result["campgrounds"][idx] = campground.jsonify()
         return result
 
-def get_availability_from_row(row, campground, first_date, last_date):
+def get_availability_from_row(row, campground, first_date, last_date, end_date):
     """
     Takes a row from the calendar table and extracts the availability of all
     days for that campsite within the given two weeks.
@@ -88,14 +87,15 @@ def get_availability_from_row(row, campground, first_date, last_date):
     :param campground: Campground object to modify
     :param first_date: datetime.date object for the first date in the calendar
     :param last_date: datetime.date object for the last date in the calendar
+    :param end_date: datetime.date object for check-out date
     """
     campsite = row.find("div", class_="siteListLabel").get_text()
     days = row.find_all("td", class_="status")
     for idx, day in enumerate(days):
         date = first_date + timedelta(days=idx)
-        if date > last_date:
+        if date > last_date or date >= end_date:
             return
-        if "a" in day.attrs["class"]:
+        elif "a" in day.attrs["class"]:
             campground.add_date(campsite, date)
 
 def get_availability(campground, url, start_date, end_date):
@@ -176,7 +176,7 @@ def get_availability(campground, url, start_date, end_date):
             # For each row in current 2 weeks, get availability
             for row in calendar_body_rows:
                 get_availability_from_row(row, campground, first_date,
-                    last_date)
+                    last_date, end_date)
 
             # Check to see if this is the last campsite
             next_link = calendar.find("tfoot").find("a",
