@@ -2,6 +2,7 @@ import mechanize
 import requests
 import re
 import dotenv
+from operator import itemgetter
 from datetime import datetime
 from datetime import timedelta
 from bs4 import BeautifulSoup
@@ -24,12 +25,19 @@ class Campground(object):
         self.name = name
         self.campsites = {}
         self.url = url
-    def add_date(self, campsite, date):
+    def add_date(self, campsite, date, reservationUrl):
         # Expect date to come in the following format:
         # Year Month Day
         if campsite not in self.campsites:
-            self.campsites[campsite] = set()
-        self.campsites[campsite].add(date)
+            self.campsites[campsite] = []
+        curCampsite = {"date": date, "reservationUrl": reservationUrl}
+        self.campsites[campsite].append(curCampsite)
+        self.campsites[campsite] = sorted(self.campsites[campsite], key=itemgetter('date'))
+    def printCampground(self):
+        print "Campground"
+        print self.name
+        print self.campsites
+        print self.url
     def jsonify(self):
         """
         Returns JSON representation of this object, as a dict
@@ -39,16 +47,19 @@ class Campground(object):
             "url": self.url,
             "campsites": []
         }
+        # Purpose of this is to convert dates into strings
         if (len(self.campsites) > 0):
             campsite_numbers = sorted(self.campsites.keys())
             for number in campsite_numbers:
-                dates = sorted(list(self.campsites[number]))
-                if len(dates) == 0:
+                if len(self.campsites[number]) == 0:
                     continue
-                for idx in range(len(dates)):
-                    dates[idx] = dates[idx].strftime("%Y-%m-%d")
-                curCampsite = {}
-                curCampsite[number] = dates
+                dates = []
+                for date in self.campsites[number]:
+                    dates.append({
+                        "date": date["date"].strftime("%Y-%m-%d"),
+                        "reservationUrl": date["reservationUrl"]
+                    })
+                curCampsite = {number: dates}
                 campground["campsites"].append(curCampsite)
         return campground
 
@@ -84,7 +95,8 @@ def get_availability_from_row(row, campground, first_date, last_date, end_date):
         if date > last_date or date >= end_date:
             return
         elif "a" in day.attrs["class"]:
-            campground.add_date(campsite, date)
+            reservationUrl = "https://www.recreation.gov" + day.find("a").attrs["href"]
+            campground.add_date(campsite, date, reservationUrl)
 
 def get_availability(campground, url, start_date, end_date):
     """
