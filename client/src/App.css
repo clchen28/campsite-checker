@@ -25,6 +25,14 @@
   margin: 0 auto;
 }
 
+button {
+  margin-top: 10px;
+}
+
+th {
+  text-align: center;
+}
+
 .App-intro {
   font-size: large;
 }
