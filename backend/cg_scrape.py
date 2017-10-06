@@ -1,5 +1,4 @@
 import mechanize
-import json
 import requests
 import re
 import dotenv
