@@ -31,38 +31,27 @@ class Campground(object):
         if campsite not in self.campsites:
             self.campsites[campsite] = set()
         self.campsites[campsite].add(date)
-    def __stringify_campsites(self):
-        # Returns a string representation of the campsite names and availability
-        # Helper function for jsonify
-        if len(self.campsites) == 0:
-            return "[]"
-        campsites_string = "["
-        campsite_numbers = sorted(self.campsites.keys())
-        last_campsite_number = campsite_numbers[-1]
-        for campsite in campsite_numbers:
-            campsites_string += '{"' + str(campsite) + '": ['
-            dates = sorted(list(self.campsites[campsite]))
-            if len(dates) == 0:
-                continue
-            last_date = dates[-1]
-            for date in dates:
-                campsites_string += '"' + date.strftime("%Y-%m-%d") + '"'
-                if date != last_date:
-                    campsites_string += ', '
-            campsites_string += ']}'
-            if campsite != last_campsite_number:
-                campsites_string += ', '
-        campsites_string += ']'
-        return campsites_string
     def jsonify(self):
         """
         Returns JSON representation of this object, as a dict
         """
-        json_string = '{"name": "' + self.name + '", '
-        json_string += '"url": "' + self.url + '", '
-        json_string += '"campsites": ' + self.__stringify_campsites()
-        json_string += '}'
-        return json.loads(json_string)
+        campground = {
+            "name": self.name,
+            "url": self.url,
+            "campsites": []
+        }
+        if (len(self.campsites) > 0):
+            campsite_numbers = sorted(self.campsites.keys())
+            for number in campsite_numbers:
+                dates = sorted(list(self.campsites[number]))
+                if len(dates) == 0:
+                    continue
+                for idx in range(len(dates)):
+                    dates[idx] = dates[idx].strftime("%Y-%m-%d")
+                curCampsite = {}
+                curCampsite[number] = dates
+                campground["campsites"].append(curCampsite)
+        return campground
 
 class CampgroundList(list):
     """
