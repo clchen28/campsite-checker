@@ -1,11 +1,21 @@
 import React, { Component } from 'react';
 
 class Campground extends Component {
+  processDate() {
+    var results = [];
+    for (var i = 0, len=this.props.campsiteDates.length; i < len; i++) {
+      let date = this.props.campsiteDates[i].date;
+      let reservationUrl = this.props.campsiteDates[i].reservationUrl;
+      let link = (<span><a href={reservationUrl}>{date}</a>{" "}</span>);
+      results.push(link);
+    }
+    return results;
+  }
   render() {
     console.log(this.props.campsiteDates);
     return (<tr>
       <td><a href={this.props.url}>{this.props.name} {this.props.campsiteNumber}</a></td>
-      <td>{this.props.campsiteDates.join(", ")}</td>
+      <td>{this.processDate()}</td>
       </tr>
     )
   }
