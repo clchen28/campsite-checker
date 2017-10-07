@@ -156,25 +156,27 @@ class LocationForm extends Component {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit}>
-        <Location 
-          location={this.state.location}
-          validateLocation={this.validateLocation}
-          onChange={this.onChangeLocation}
-          locationError={this.state.locationError} />
-        <Radius
-          radius={this.state.radius}
-          validateRadius={this.validateRadius}
-          onChange={this.onChangeRadius}
-          radiusError={this.state.radiusError} />
-        <Dates
-          startDate={this.state.start_date}
-          endDate={this.state.end_date}
-          validateDates={this.validateDates}
-          onChangeStartDate={this.onChangeStartDate}
-          onChangeEndDate={this.onChangeEndDate} />
-        {this.currentButton()}
-      </form>
+      <div>
+        <form onSubmit={this.handleSubmit}>
+          <Location 
+            location={this.state.location}
+            validateLocation={this.validateLocation}
+            onChange={this.onChangeLocation}
+            locationError={this.state.locationError} />
+          <Radius
+            radius={this.state.radius}
+            validateRadius={this.validateRadius}
+            onChange={this.onChangeRadius}
+            radiusError={this.state.radiusError} />
+          <Dates
+            startDate={this.state.start_date}
+            endDate={this.state.end_date}
+            validateDates={this.validateDates}
+            onChangeStartDate={this.onChangeStartDate}
+            onChangeEndDate={this.onChangeEndDate} />
+          {this.currentButton()}
+        </form>
+      </div>
     );
   }
 }
