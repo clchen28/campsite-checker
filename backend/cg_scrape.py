@@ -95,7 +95,9 @@ def get_availability_from_row(row, campground, first_date, last_date, end_date):
         if date > last_date or date >= end_date:
             return
         elif "a" in day.attrs["class"]:
-            reservationUrl = "https://www.recreation.gov" + day.find("a").attrs["href"]
+            reservationUrl = "https://www.recreation.gov" + day.find("a").attrs["href"] + "&lengthOfStay=1"
+            print day.find("a").attrs["href"]
+            print reservationUrl
             campground.add_date(campsite, date, reservationUrl)
 
 def get_availability(campground, url, start_date, end_date):
