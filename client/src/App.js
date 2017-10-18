@@ -46,6 +46,7 @@ class App extends Component {
           </div>
           <Route exact path="/" render={() => <LocationForm onResponse={this.onChangeCampgrounds} />} />
           <Route path="/about" component={About} />
+          <Route path="/results" render={() => <Campgrounds campgrounds={this.state.campgrounds} />} />
           <div className="App-footer">
           <i className ="fa fa-code" aria-hidden="true"></i> with <i className="fa fa-heart" aria-hidden="true"></i>, <i className="fa fa-coffee" aria-hidden="true"></i>, and <i className="fa fa-beer" aria-hidden="true"></i><br />
           Hosted on <a href="https://github.com/CCInCharge/campsite-checker"><i className="fa fa-github" aria-hidden="false"></i></a>
