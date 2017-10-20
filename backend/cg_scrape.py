@@ -1,4 +1,4 @@
-import mechanize
+import mechanicalsoup
 import requests
 import re
 import dotenv
@@ -34,10 +34,10 @@ class Campground(object):
         self.campsites[campsite].append(curCampsite)
         self.campsites[campsite] = sorted(self.campsites[campsite], key=itemgetter('date'))
     def printCampground(self):
-        print "Campground"
-        print self.name
-        print self.campsites
-        print self.url
+        print("Campground")
+        print(self.name)
+        print(self.campsites)
+        print(self.url)
     def jsonify(self):
         """
         Returns JSON representation of this object, as a dict
@@ -96,8 +96,8 @@ def get_availability_from_row(row, campground, first_date, last_date, end_date):
             return
         elif "a" in day.attrs["class"]:
             reservationUrl = "https://www.recreation.gov" + day.find("a").attrs["href"] + "&lengthOfStay=1"
-            print day.find("a").attrs["href"]
-            print reservationUrl
+            print(day.find("a").attrs["href"])
+            print(reservationUrl)
             campground.add_date(campsite, date, reservationUrl)
 
 def get_availability(campground, url, start_date, end_date):
@@ -110,25 +110,23 @@ def get_availability(campground, url, start_date, end_date):
     :param start_date: datetime.date object of the first date to search
     :param end_date: datetime.date object of the last desired date for reservation checking
     """
-    br = mechanize.Browser()
+    br = mechanicalsoup.StatefulBrowser()
 
-    # TODO: Use a UA alias, if exists in Python mechanize
-    br.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36')]
-    br.set_handle_robots(False)
+    br.session.headers.update({'User-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'})
     br.open(url)
 
     # First, submit form with given arrival date
-    br.select_form("unifSearchForm")
+    br.select_form("form[name=unifSearchForm]")
     # Assume that start_date and end_date are datetime.date objects
-    br.form['arrivalDate'] = start_date.strftime("%a %b %d %Y")
-    br.form['departureDate'] = end_date.strftime("%a %b %d %Y")
-    br.submit()
+    br['arrivalDate'] = start_date.strftime("%a %b %d %Y")
+    br['departureDate'] = end_date.strftime("%a %b %d %Y")
+    response = br.submit_selected()
 
     # Navigate to calendar. Now, first date in calendar will be start_date
-    text = br.response().read()
+    text = response.text
     soup = BeautifulSoup(text, "html.parser")
     calendar_url = soup.find("a", id="campCalendar")["href"]
-    br.open("https://www.recreation.gov" + calendar_url)
+    response = br.open("https://www.recreation.gov" + calendar_url)
 
     last_date_reached = False
     last_campsite_reached = False
@@ -136,7 +134,7 @@ def get_availability(campground, url, start_date, end_date):
         last_date_reached = False
         last_campsite_reached = False
         while not last_campsite_reached:
-            text = br.response().read()
+            text = response.text
             soup = BeautifulSoup(text, "html.parser")
             calendar = soup.find("table", id="calendar")
 
@@ -190,8 +188,7 @@ def get_availability(campground, url, start_date, end_date):
             else:
                 # Finds link to next set of campsites, making sure to not select
                 # the link for the next 2 weeks
-                br.follow_link(text_regex=re.compile("(Next)((?!week).)*$"),
-                    nr=1)
+                response = br.follow_link(next_link)
         # Check to see if this is the last date
         if end_date <= last_date:
             last_date_reached = True
@@ -202,7 +199,7 @@ def get_availability(campground, url, start_date, end_date):
             next_week_link = "https://www.recreation.gov"
             next_week_link += next_week_element["href"]
             next_week_link += "&startIdx=0"
-            br.open(next_week_link)
+            response = br.open(next_week_link)
     return campground
 
 class CantAccessAPI(Exception):
@@ -245,7 +242,7 @@ def get_campgrounds_from_API(latitude, longitude, radius):
     base_url = "https://www.recreation.gov/camping/"
     base_url_suffix = "/r/campgroundDetails.do?contractCode=NRSO&parkId="
 
-    print res.json()
+    print(res.json())
 
     for idx,campsite in enumerate(res_list):
         facility_name = campsite['FacilityName'].lower().replace(" ", "-")
@@ -289,11 +286,5 @@ def geocode_location(location):
 
 # Main function for simple testing
 if (__name__ == "__main__"):
-    """
-    url = "https://www.recreation.gov/camping/Hodgdon_Meadow/r/campsiteCalendar.do?page=calendar&search=site&contractCode=NRSO&parkId=70929"
-    myCampground = Campground("Hodgdon Meadow", url)
-    myCampground = get_availability(myCampground, url, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
-    print myCampground.jsonify()
-    """
     a = get_campgrounds_from_API(37.827822, -119.544858, 10)
-    print get_all_campsite_availability(a, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date())
+    print(get_all_campsite_availability(a, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date()))

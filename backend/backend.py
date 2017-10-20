@@ -25,23 +25,23 @@ class Campgrounds(Resource):
         try:
             lat,lon = geocode_location(args['location'])
         except CantAccessAPI as e:
-            print e
+            print(e)
             # Redirect to previous page with error
             return
         except CantFindLocation as e:
-            print e
+            print(e)
             # Redirect to previous page with error
             return
 
-        print "Latitude: ",lat
-        print "Longitude: ",lon
+        print("Latitude: ",lat)
+        print("Longitude: ",lon)
 
         campgrounds = get_campgrounds_from_API(lat, lon, args['radius'])
         start_date = datetime.strptime(args['start_date'], "%m/%d/%Y").date()
         end_date = datetime.strptime(args['end_date'], "%m/%d/%Y").date()
 
         result = get_all_campsite_availability(campgrounds, start_date, end_date)
-        print result
+        print(result)
         return result
 
 api.add_resource(Campgrounds, '/api')
