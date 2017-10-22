@@ -3,8 +3,8 @@ from flask_restful import Resource, Api, reqparse
 from datetime import datetime
 from cg_scrape import *
 
-app = Flask(__name__)
-api = Api(app)
+application = Flask(__name__)
+api = Api(application)
 
 class Campgrounds(Resource):
     def post(self):
@@ -45,3 +45,5 @@ class Campgrounds(Resource):
         return result
 
 api.add_resource(Campgrounds, '/api')
+if __name__ == "__main__":
+    application.run()
