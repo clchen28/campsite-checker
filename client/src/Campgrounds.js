@@ -31,8 +31,8 @@ class Campgrounds extends Component {
         <Table responsive>
           <thead>
             <tr>
-              <th align="center">Campsite</th>
-              <th align="center">Dates Available</th>
+              <th className="text-center">Campsite</th>
+              <th className="text-center">Dates Available</th>
             </tr>
           </thead>
           <tbody>

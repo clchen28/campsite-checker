@@ -4,7 +4,8 @@ class About extends Component {
   render() {
     return (
       <div>
-        Just a test
+        Created with React on the frontend.<br />
+        Backend created with Python/Flask. Results populated via Python web scraper.
       </div>
     )
   }

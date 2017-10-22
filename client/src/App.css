@@ -36,3 +36,30 @@ th {
 .App-intro {
   font-size: large;
 }
+
+#navbar a:link {
+  color: white;
+}
+
+#navbar a:visited {
+  color: white;
+}
+
+#navbar a:hover {
+  color: white;
+}
+
+#navbar a:active {
+  color: white;
+}
+
+#navbar {
+  color: black;
+  background-color: black;
+  border-style: solid;
+  border-color: black;
+}
+
+.selected-nav {
+  background-color: rgba(0, 226, 72, 0.719);
+}

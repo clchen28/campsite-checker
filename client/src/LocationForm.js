@@ -10,61 +10,24 @@ class LocationForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      locationFirstRender: true,
-      radiusFirstRender: true,
-      location: "",
-      radius: "",
       locationValidationState: null,
       radiusValidationState: null,
       startDateError: null,
       endDateError: null,
       submitting: false,
-      start_date: moment(),
-      end_date: moment().add(1, 'days'),
     };
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.onChangeLocation = this.onChangeLocation.bind(this);
-    this.onChangeRadius = this.onChangeRadius.bind(this);
-    this.onChangeStartDate = this.onChangeStartDate.bind(this);
-    this.onChangeEndDate = this.onChangeEndDate.bind(this);
     this.validateLocation = this.validateLocation.bind(this);
     this.validateRadius = this.validateRadius.bind(this);
     this.validateDates = this.validateDates.bind(this);
-  }
-
-  onChangeLocation(newLocation) {
-    this.setState({
-      location: newLocation.target.value,
-      locationFirstRender: false
-    });
-  }
-
-  onChangeRadius(newRadius) {
-    this.setState({
-      radius: newRadius.target.value,
-      radiusFirstRender: false
-    });
-  }
-
-  onChangeStartDate(newStartDate) {
-    this.setState({
-      start_date: newStartDate,
-      dateFirstRender: false
-    });
-  }
-
-  onChangeEndDate(newEndDate) {
-    this.setState({
-      end_date: newEndDate,
-      dateFirstRender: false
-    });
+    this.noErrorInForm = this.noErrorInForm.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   validateLocation() {
-    if (this.state.locationFirstRender) {
+    if (this.props.locationFirstRender) {
       return null;
     }
-    else if (this.state.location === "") {
+    else if (this.props.location === "") {
       return "error";
     }
     else {
@@ -73,16 +36,16 @@ class LocationForm extends Component {
   }
 
   validateRadius() {
-    if (this.state.radiusFirstRender) {
+    if (this.props.radiusFirstRender) {
       return null;
     }
-    else if (this.state.radius === "") {
+    else if (this.props.radius === "") {
       return "error";
     }
-    else if (isNaN(this.state.radius)) {
+    else if (isNaN(this.props.radius)) {
       return "error";
     }
-    else if (isNaN(parseInt(this.state.radius, 10))) {
+    else if (isNaN(parseInt(this.props.radius, 10))) {
       return "error";
     }
     else {
@@ -91,10 +54,10 @@ class LocationForm extends Component {
   }
 
   validateDates() {
-    if (this.state.start_date.date() < moment().date()) {
+    if (this.props.start_date.date() < moment().date()) {
       return "Start date must be today or later";
     }
-    else if (this.state.start_date >= this.state.end_date) {
+    else if (this.props.start_date >= this.props.end_date) {
       return "Start date must be before the end date";
     }
     return "success";
@@ -120,10 +83,10 @@ class LocationForm extends Component {
     if (this.noErrorInForm()) {
       var apiUrl = "/api";
       var data = {
-        location: this.state.location,
-        radius: this.state.radius,
-        start_date: this.state.start_date.format("MM/DD/YYYY"),
-        end_date: this.state.end_date.format("MM/DD/YYYY")
+        location: this.props.location,
+        radius: this.props.radius,
+        start_date: this.props.start_date.format("MM/DD/YYYY"),
+        end_date: this.props.end_date.format("MM/DD/YYYY")
       };
       var headers = {
         'Content-Type': 'application/json'
@@ -134,6 +97,9 @@ class LocationForm extends Component {
       axios.post(apiUrl, data, headers).then(
         response => {
           this.props.onResponse(response.data.campgrounds);
+          this.setState({
+            submitting: false
+          });
         }
       );
     }
@@ -159,22 +125,23 @@ class LocationForm extends Component {
       <div>
         <form onSubmit={this.handleSubmit}>
           <Location 
-            location={this.state.location}
+            location={this.props.location}
             validateLocation={this.validateLocation}
-            onChange={this.onChangeLocation}
+            onChange={this.props.onChangeLocation}
             locationError={this.state.locationError} />
           <Radius
-            radius={this.state.radius}
+            radius={this.props.radius}
             validateRadius={this.validateRadius}
-            onChange={this.onChangeRadius}
+            onChange={this.props.onChangeRadius}
             radiusError={this.state.radiusError} />
           <Dates
-            startDate={this.state.start_date}
-            endDate={this.state.end_date}
+            startDate={this.props.start_date}
+            endDate={this.props.end_date}
             validateDates={this.validateDates}
-            onChangeStartDate={this.onChangeStartDate}
-            onChangeEndDate={this.onChangeEndDate} />
+            onChangeStartDate={this.props.onChangeStartDate}
+            onChangeEndDate={this.props.onChangeEndDate} />
           {this.currentButton()}
+          <Button bsStyle="default" onClick={this.props.onClearSearch}>Clear</Button>
         </form>
       </div>
     );
