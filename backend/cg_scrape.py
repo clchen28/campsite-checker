@@ -256,6 +256,7 @@ def get_campgrounds_from_API(latitude, longitude, radius):
 
 def get_all_campsite_availability(campgrounds, start_date, end_date):
     for campground in campgrounds:
+        print("Campground: ",campground.url)
         get_availability(campground, campground.url, start_date, end_date)
     return campgrounds.serialize()
 
@@ -283,8 +284,3 @@ def geocode_location(location):
         lat = res_obj["results"][0]["geometry"]["location"]["lat"]
         lon = res_obj["results"][0]["geometry"]["location"]["lng"]
         return (lat, lon)
-
-# Main function for simple testing
-if (__name__ == "__main__"):
-    a = get_campgrounds_from_API(37.827822, -119.544858, 10)
-    print(get_all_campsite_availability(a, datetime(2017, 10, 5).date(), datetime(2017, 10, 27).date()))

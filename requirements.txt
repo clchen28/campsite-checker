@@ -1,5 +1,6 @@
 beautifulsoup4==4.6.0
 Flask==0.12.2
+Flask-Cors==3.0.3
 Flask-RESTful==0.3.6
 MechanicalSoup==0.8.0
 python-env==1.0.0

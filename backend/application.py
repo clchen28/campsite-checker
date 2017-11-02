@@ -2,8 +2,10 @@ from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from datetime import datetime
 from cg_scrape import *
+from flask_cors import cross_origin, CORS
 
 application = Flask(__name__)
+cors = CORS(application)
 api = Api(application)
 
 class Campgrounds(Resource):

@@ -12,7 +12,6 @@ class Campground extends Component {
     return results;
   }
   render() {
-    console.log(this.props.campsiteDates);
     return (<tr>
       <td><a href={this.props.url}>{this.props.name} {this.props.campsiteNumber}</a></td>
       <td>{this.processDate()}</td>

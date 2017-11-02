@@ -5,6 +5,8 @@ import Radius from './Radius';
 import { Button } from 'react-bootstrap';
 import moment from 'moment';
 import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config()
 
 class LocationForm extends Component {
   constructor(props) {
@@ -88,13 +90,10 @@ class LocationForm extends Component {
         start_date: this.props.start_date.format("MM/DD/YYYY"),
         end_date: this.props.end_date.format("MM/DD/YYYY")
       };
-      var headers = {
-        'Content-Type': 'application/json'
-      };
       this.setState({
         submitting: true
       });
-      axios.post(apiUrl, data, headers).then(
+      axios.post(apiUrl, data).then(
         response => {
           this.props.onResponse(response.data.campgrounds);
           this.setState({
